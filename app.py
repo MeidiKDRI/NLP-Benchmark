@@ -18,7 +18,7 @@ spacy_en = spacy.load("en_core_web_sm")
 spacy_fr = spacy.load("fr_core_news_sm")
 
 # TEXTRAZOR
-textrazor.api_key = "9fb66f17ec9ab7a7f5015b68f27be5ed02a81c7b49dd2c607f2ebea2"
+textrazor.api_key = "API_Key"
 
 #####################################################
 ############### BENCHMARK 
@@ -91,18 +91,14 @@ def home() :
         razor_text_list = []
         razor_entity_list = []
 
-        for word in response_textrazor.words() :
-            razor_text_list.append(word)
-        print(razor_text_list)
-
         for entity in response_textrazor.entities():
             razor_ent = entity.id
             razor_type = entity.dbpedia_types
             razor_entity_list.append(f'({razor_ent}, {razor_type})')
 
         # Append Textrazor counters
-        token_counter.append(len(razor_text_list))
-        sentences_counter.append(len(razor_text_list))
+        token_counter.append('Unknown')
+        sentences_counter.append('Unknown')
         entities_counter.append(len(razor_entity_list))
         entities_list.append(razor_entity_list)
 
@@ -256,6 +252,74 @@ def spacy_page() :
 
     return render_template("spacy.html")
 
+#####################################################
+############### Text Razor 
+#####################################################
+@app.route('/razor_page', methods = ['GET', 'POST'])
+def razor_page() :
+
+    if request.method == 'POST' :
+
+        text = request.form.get('text_input')
+        language = request.form.get('language')
+
+        if language == 'en' :
+            stanza_nlp = stanza_en
+        else :
+            stanza_nlp = stanza_en
+
+        # Return tokenization as Document object
+        stanza_doc = stanza_nlp(text)
+
+        # Document conversion to dict for manipulation
+        stanza_result = stanza_doc.to_dict()
+
+        # Lists preparation for DataFrame
+        text_list = []
+        lemma_list = []
+        upos_list = []
+
+        # We loop inside result dict to append lists
+        for sentence in range(len(stanza_result)) :
+            for word in range(len(stanza_result[sentence])) :
+                text_list.append(stanza_result[sentence][word]['text'])
+                lemma_list.append(stanza_result[sentence][word]['lemma'])
+                upos_list.append(stanza_result[sentence][word]['upos'])
+
+        # We display result in a dataframe
+        stanza_result_df = pd.DataFrame({
+            'Text' : text_list,
+            'Lemma' : lemma_list,
+            'Part Of Speech (pos)' : upos_list})
+
+        # Return entities as JSON object
+        stanza_ner_result = stanza_doc.entities
+        # Results format
+        ent_text_list = []
+        ent_type_list = []
+
+        for entity in range(len(stanza_ner_result)) :
+            ent_text_list.append(stanza_ner_result[entity].text)
+            ent_type_list.append(stanza_ner_result[entity].type)
+
+        df_entities = pd.DataFrame({
+            'Text' : ent_text_list,
+            'Type' : ent_type_list})
+
+        # Counters
+        sentences_counter = len(stanza_doc.sentences)
+        token_counter = len(text_list)
+        entities_counter = len(stanza_ner_result)
+
+        return render_template("razor.html",
+            text = text,
+            token_counter = f'{token_counter} tokens in your text',
+            sentences_counter = f'{sentences_counter} sentences in your text',
+            entities_counter = f'{entities_counter} entities found in your text',
+            dataset = [stanza_result_df.to_html(classes= 'data')],
+            ent_dataset = [df_entities.to_html(classes= 'data')])
+
+    return render_template("razor.html")
 
 #####################################################
 ############### Flair 

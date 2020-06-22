@@ -2,7 +2,7 @@
 <html>
 
     <head>
-        <title>Flair - NLP Benchmark</title>
+        <title>Text Razor - NLP Benchmark</title>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css" />    
@@ -23,11 +23,11 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{url_for('stanza_page')}}">Stanza<span class="sr-only"></span></a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{url_for('razor_page')}}">Text Razor<span class="sr-only"></span></a>
-                </li>
                 <li class="nav-item active">
-                    <a class="nav-link" href="{{url_for('flair_page')}}">Flair<span class="sr-only">(current)</span></a>
+                    <a class="nav-link" href="{{url_for('razor_page')}}">Text Razor<span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item ">
+                    <a class="nav-link" href="{{url_for('flair_page')}}">Flair<span class="sr-only"></span></a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{url_for('camembert_page')}}">CamemBERT<span class="sr-only"></span></a>
@@ -52,7 +52,7 @@
     {% endwith %}
     <!-- Flash message-->
 
-    <h2 style = 'text-align: center; margin-top: 70px'>Flair</h2>
+    <h2 style = 'text-align: center; margin-top: 70px'>Text Razor</h2>
 
     <div class="container-fluid h-100" style = 'margin:auto; width: 75%;'>
         <form action="#" method="POST" >
