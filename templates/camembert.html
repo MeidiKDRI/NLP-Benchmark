@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>CamemBERT - NLP Benchmarker</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css" />    
+    
+        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark shadow">
+            <a class="navbar-brand mb-0 h1" href="#">NLP BenchMarker</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{url_for('home')}}">Benchmark<span class="sr-only"></span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{url_for('spacy_page')}}">Spacy<span class="sr-only"></span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{url_for('stanza_page')}}">Stanza<span class="sr-only"></span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{url_for('flair_page')}}">Flair<span class="sr-only"></span></a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{url_for('camembert_page')}}">CamemBERT<span class="sr-only">(current</span></a>
+                </li>
+            </div>
+        </nav>
+    </head>
+
+<body>
+    <!-- Flash message-->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    <strong>{{ message }}</strong>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="this.parentElement.style.display='none';">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <!-- Flash message-->
+
+    <h2 style = 'text-align: center; margin-top: 70px'>CamemBERT</h2>
+
+    <div class="container-fluid h-100" style = 'margin:auto; width: 75%;'>
+        <form action="#" method="POST" >
+            <div class="form-group">
+                <strong><label for="input_textarea">Text input :</label></strong>
+                <select  name="language" class="selectpicker form-control">
+                    <option value="en" selected = 'selected'>English</option>
+                    <option value="fr">French</option>
+                </select>
+                <textarea name= 'text_input' class="form-control" id="input_textarea" rows="3"></textarea>
+            </div>
+            <button name= "submit" type="submit" class="btn btn-info btn-block" style = 'margin-top:10px;' value = "launch">
+                Launch Analyze
+            </button>        
+        </form>
+    </div>
+
+    
+    <div class="container-fluid h-100" style = 'margin:auto; width: 75%;'>
+
+        {%if text %}
+        <div style="margin-top: 15px;">
+            <h6> Your text :</h6>
+                {{text}}
+        </div>
+
+        <h6 style="margin-top: 15px;"> Results :</h6>
+        <div> {{token_counter}}</div>
+        <div> {{sentences_counter}} </div>
+        <div>{{entities_counter}} </div>
+
+        <hr>
+        {% endif %}
+
+        <div class = 'row' style = 'margin:auto; width:75%'>
+            <!-- dataset -->
+            {% for table in dataset %}
+            <div class="table" style = 'margin:auto; width: 75%'>
+                <h5>Tokens</h5>
+                {{ table|safe }}
+            </div>
+            {% endfor %}
+        
+            <!-- entities dataset -->
+            {% for table in ent_dataset %}
+            <div class="table" style = 'margin:auto; width: 25%'>
+                <h5>Entities</h5>
+                {{ table|safe }}
+            </div>
+            {% endfor %}
+        </div>
+        <hr style="margin-top: 30px; margin-bottom: 70px;">
+    </div>
+
+</body>
+
+<!--Scripts-->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
+<!--Scripts-->
+
+
+<!-- Footer -->
+<footer class="fixed-bottom">
+    <!-- Copyright -->
+    <div>© 2020 Copyright: <a href="https://www.linkedin.com/in/meidi-kadri/">Meidi KADRI</a></div>
+    <!-- Copyright -->
+  </footer> 
+  <!-- Footer -->
+
+</html>
