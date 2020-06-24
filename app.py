@@ -1,13 +1,23 @@
 from flask import *
+import io
+from werkzeug.utils import secure_filename
+from flaskext.markdown import Markdown
+
 import stanza
-import spacy
+
 import textrazor
+from transformers import *
+import torch
+
+import spacy
+from spacy import displacy
 
 import os
 import pandas as pd
 
 app = Flask(__name__)
 app.config.update(DEBUG=True)
+Markdown(app)
 
 # STANZA
 stanza_en = stanza.Pipeline('en')
@@ -18,7 +28,10 @@ spacy_en = spacy.load("en_core_web_sm")
 spacy_fr = spacy.load("fr_core_news_sm")
 
 # TEXTRAZOR
-textrazor.api_key = "API_Key"
+textrazor.api_key = "9fb66f17ec9ab7a7f5015b68f27be5ed02a81c7b49dd2c607f2ebea2"
+
+# TRANSFORMERS
+transformers_nlp = pipeline('ner')
 
 #####################################################
 ############### BENCHMARK 
@@ -39,7 +52,7 @@ def home() :
             spacy_nlp = spacy_fr
 
         # Lists for benchmark dataframe
-        libs = ['Stanza', 'Spacy', 'Text Razor']
+        libs = ['Stanza', 'Spacy', 'Text Razor', 'Transfromers']
         entities_list = []
         token_counter = []
         sentences_counter = []
@@ -88,7 +101,6 @@ def home() :
         client_textrazor = textrazor.TextRazor(extractors=["entities", "topics"])
         response_textrazor = client_textrazor.analyze(text)
 
-        razor_text_list = []
         razor_entity_list = []
 
         for entity in response_textrazor.entities():
@@ -97,10 +109,24 @@ def home() :
             razor_entity_list.append(f'({razor_ent}, {razor_type})')
 
         # Append Textrazor counters
-        token_counter.append('Unknown')
-        sentences_counter.append('Unknown')
+        token_counter.append(len(spacy_text_list))
+        sentences_counter.append(len(spacy_sent))
         entities_counter.append(len(razor_entity_list))
         entities_list.append(razor_entity_list)
+
+        # TRANSFORMERS
+        transformers_entities = transformers_nlp(text)
+        transformers_entities_list = []
+        for ent in range(len(transformers_entities)) :
+            trans_ent = transformers_entities[ent]['word']
+            trans_type = transformers_entities[ent]['entity']
+            transformers_entities_list.append(f'({trans_ent}, {trans_type})')
+
+        # Append Transformers XL counters
+        token_counter.append(len(spacy_text_list))
+        sentences_counter.append(len(spacy_sent))
+        entities_counter.append(len(transformers_entities_list))
+        entities_list.append(transformers_entities_list)
 
         # We display result in a dataframe
         benchmark_result_df = pd.DataFrame({
@@ -195,60 +221,19 @@ def spacy_page() :
         language = request.form.get('language')
 
         if language == 'en' :
-            stanza_nlp = stanza_en
+            spacy_nlp = spacy_en
         else :
-            stanza_nlp = stanza_fr
+            spacy_nlp = spacy_fr
 
         # Return tokenization as Document object
-        stanza_doc = stanza_nlp(text)
+        spacy_doc = spacy_nlp(text)
 
-        # Document conversion to dict for manipulation
-        stanza_result = stanza_doc.to_dict()
-
-        # Lists preparation for DataFrame
-        text_list = []
-        lemma_list = []
-        upos_list = []
-
-        # We loop inside result dict to append lists
-        for sentence in range(len(stanza_result)) :
-            for word in range(len(stanza_result[sentence])) :
-                text_list.append(stanza_result[sentence][word]['text'])
-                lemma_list.append(stanza_result[sentence][word]['lemma'])
-                upos_list.append(stanza_result[sentence][word]['upos'])
-
-        # We display result in a dataframe
-        stanza_result_df = pd.DataFrame({
-            'Text' : text_list,
-            'Lemma' : lemma_list,
-            'Part Of Speech (pos)' : upos_list})
-
-        # Return entities as JSON object
-        stanza_ner_result = stanza_doc.entities
-        # Results format
-        ent_text_list = []
-        ent_type_list = []
-
-        for entity in range(len(stanza_ner_result)) :
-            ent_text_list.append(stanza_ner_result[entity].text)
-            ent_type_list.append(stanza_ner_result[entity].type)
-
-        df_entities = pd.DataFrame({
-            'Text' : ent_text_list,
-            'Type' : ent_type_list})
-
-        # Counters
-        sentences_counter = len(stanza_doc.sentences)
-        token_counter = len(text_list)
-        entities_counter = len(stanza_ner_result)
+        # Entity detection graph
+        ent_graph = displacy.render(spacy_doc, style="ent")
 
         return render_template("spacy.html",
             text = text,
-            token_counter = f'{token_counter} tokens in your text',
-            sentences_counter = f'{sentences_counter} sentences in your text',
-            entities_counter = f'{entities_counter} entities found in your text',
-            dataset = [stanza_result_df.to_html(classes= 'data')],
-            ent_dataset = [df_entities.to_html(classes= 'data')])
+            ent_graph = ent_graph)
 
     return render_template("spacy.html")
 

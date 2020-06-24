@@ -80,10 +80,10 @@
         </div>
 
         <h6 style="margin-top: 15px;"> Results :</h6>
-        <div> {{token_counter}}</div>
-        <div> {{sentences_counter}} </div>
-        <div>{{entities_counter}} </div>
-
+        <div>
+            <h6>Entities Detection Graph.</h6>
+            {{ ent_graph|markdown}}
+        </div>
         <hr>
         {% endif %}
 
