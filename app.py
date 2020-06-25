@@ -12,6 +12,9 @@ import torch
 import spacy
 from spacy import displacy
 
+from flair.data import Sentence
+from flair.models import SequenceTagger
+
 import os
 import pandas as pd
 
@@ -33,6 +36,10 @@ textrazor.api_key = "9fb66f17ec9ab7a7f5015b68f27be5ed02a81c7b49dd2c607f2ebea2"
 # TRANSFORMERS
 transformers_nlp = pipeline('ner')
 
+# FLAIR
+flair_en = SequenceTagger.load('ner')
+flair_fr = SequenceTagger.load('fr-ner')
+
 #####################################################
 ############### BENCHMARK 
 #####################################################
@@ -47,12 +54,14 @@ def home() :
         if language == 'en' :
             stanza_nlp = stanza_en
             spacy_nlp = spacy_en
+            flair_nlp = flair_en
         else :
             stanza_nlp = stanza_fr
             spacy_nlp = spacy_fr
+            flair_nlp = flair_fr
 
         # Lists for benchmark dataframe
-        libs = ['Stanza', 'Spacy', 'Text Razor', 'Transfromers']
+        libs = ['Stanza', 'Spacy', 'Text Razor', 'Transfromers', 'Flair']
         entities_list = []
         token_counter = []
         sentences_counter = []
@@ -127,6 +136,26 @@ def home() :
         sentences_counter.append(len(spacy_sent))
         entities_counter.append(len(transformers_entities_list))
         entities_list.append(transformers_entities_list)
+
+        # FLAIR
+        flair_sentence = Sentence(text)
+
+        # Run NER on sentence to identify Entities
+        flair_nlp.predict(flair_sentence)
+
+        flair_entities_list = []
+        # print the entities with below command
+        for entity in flair_sentence.get_spans('ner'):
+            entities = entity.to_dict()
+            entity_name = entities['text']
+            entity_type = entities['labels']
+            flair_entities_list.append(f'({entity_name}, {entity_type})')
+
+        # Append Transformers XL counters
+        token_counter.append(len(flair_sentence.tokens))
+        sentences_counter.append(len(spacy_sent))
+        entities_counter.append(len(flair_entities_list))
+        entities_list.append(flair_entities_list)
 
         # We display result in a dataframe
         benchmark_result_df = pd.DataFrame({
